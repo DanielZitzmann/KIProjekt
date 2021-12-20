@@ -3,7 +3,8 @@ import sys
 
 import cv2
 import mediapipe as mp
-import win32api, win32con
+#import win32api, win32con
+from pynput.mouse import Button, Controller
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -15,6 +16,7 @@ thumbLastPosX = 0
 thumbLastPosY = 0
 scale = 0.5
 useStickmode = 0
+mouse = Controller()
 
 # For webcam input:
 cap = cv2.VideoCapture(0)  # Kamera ID
@@ -65,8 +67,8 @@ with mp_hands.Hands(
                         mouseCounter += 1
                         thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY
                     else:
-                        nx, ny = win32api.GetCursorPos()
-                        win32api.SetCursorPos(
+                        nx, ny = mouse.position
+                        mouse.position =(
                             ((nx - (int((thumbtipX - thumbLastPosX)/scale)) ), (ny - ((int((thumbtipY - thumbLastPosY)/scale))))))
                         courserLastPostX, courserLastPostY = nx, ny
                         if useStickmode==0:
