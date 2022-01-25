@@ -42,52 +42,57 @@ with mp_hands.Hands(
         height, width, channels = image.shape
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                # Hole Zeigefingerkuppe Koordinaten und rechne diese in Pixel  um
-                indextipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x)
-                indextipY = height - (height * hand_landmarks.landmark[
-                    mp_hands.HandLandmark.INDEX_FINGER_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
-                # Hole Daumenkuppe Koordinaten und reche diese in Pixel um
-                thumbtipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x)
-                thumbtipY = height - (height * hand_landmarks.landmark[
-                    mp_hands.HandLandmark.THUMB_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
-                # Berechne Abstand zwischen Thumb und Index in Pixel
-                distanceX = abs(indextipX - thumbtipX)
-                distanceY = abs(indextipY - thumbtipY)
+            for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):
 
-                thumbstring = 'Thumb: ' + str(thumbtipX)[:3] + " : " + str(thumbtipY)[:4]
-                indexstring = 'index: ' + str(indextipX)[:3] + " : " + str(indextipY)[:4]  # Setze Ausgabe zusammen
-                distancestring = 'Distance: ' + str(distanceX)[:3] + " : " + str(distanceY)[:4] + " MC: " + str(
-                    mouseCounter)
-                cv2.flip(image, 1)
-                if distanceX <= 20 and distanceY <= 20:
-                    distanceColor = (0, 0, 255)
-                    # print('mc: ' + str(mouseCounter))
-                    if mouseCounter < 15:
-                        mouseCounter += 1
-                        thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY
-                    else:
-                        nx, ny = mouse.position
-                        mouse.position =(
-                            ((nx - (int((thumbtipX - thumbLastPosX)/scale)) ), (ny - ((int((thumbtipY - thumbLastPosY)/scale))))))
-                        courserLastPostX, courserLastPostY = nx, ny
-                        if useStickmode==0:
-                          thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY
-                        print('last Coords : ' + str(courserLastPostX) + ' ' + str(courserLastPostY))
-                        print('New Coords : ' + str(nx) + ' ' + str(ny))
-                        # win32api.SetCursorPos((int(thumbtipX), int(thumbtipY)))
-                else:
-                    distanceColor = (255, 255, 255)
-                    # print('mc: ' + str(mouseCounter))
-                    if mouseCounter > 0:
-                        mouseCounter -= 1
+                print(f'HAND NUMBER: {hand_no + 1}')
+                print('-----------------------')
+                if (hand_no == 0):
+                    # Hole Zeigefingerkuppe Koordinaten und rechne diese in Pixel  um
+                    indextipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x)
+                    indextipY = height - (height * hand_landmarks.landmark[
+                        mp_hands.HandLandmark.INDEX_FINGER_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
+                    # Hole Daumenkuppe Koordinaten und reche diese in Pixel um
+                    thumbtipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x)
+                    thumbtipY = height - (height * hand_landmarks.landmark[
+                        mp_hands.HandLandmark.THUMB_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
+                    # Berechne Abstand zwischen Thumb und Index in Pixel
+                    distanceX = abs(indextipX - thumbtipX)
+                    distanceY = abs(indextipY - thumbtipY)
+
+                    thumbstring = 'Thumb: ' + str(thumbtipX)[:3] + " : " + str(thumbtipY)[:4]
+                    indexstring = 'index: ' + str(indextipX)[:3] + " : " + str(indextipY)[:4]  # Setze Ausgabe zusammen
+                    distancestring = 'Distance: ' + str(distanceX)[:3] + " : " + str(distanceY)[:4] + " MC: " + str(
+                        mouseCounter)
+                    cv2.flip(image, 1)
+                    if distanceX <= 20 and distanceY <= 20:
+                        distanceColor = (0, 0, 255)
                         # print('mc: ' + str(mouseCounter))
-                image = cv2.putText(image, indexstring[:], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
-                                    cv2.LINE_AA)
-                image = cv2.putText(image, thumbstring[:], (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
-                                    cv2.LINE_AA)
-                image = cv2.putText(image, distancestring[:], (50, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, distanceColor, 2,
-                                    cv2.LINE_AA)
+                        if mouseCounter < 15:
+                            mouseCounter += 1
+                            thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY
+                        else:
+                            nx, ny = mouse.position
+                            mouse.position =(
+                                ((nx - (int((thumbtipX - thumbLastPosX)/scale)) ), (ny - ((int((thumbtipY - thumbLastPosY)/scale))))))
+                            courserLastPostX, courserLastPostY = nx, ny
+                            if useStickmode==0:
+                              thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY
+                            print('last Coords : ' + str(courserLastPostX) + ' ' + str(courserLastPostY))
+                            print('New Coords : ' + str(nx) + ' ' + str(ny))
+                            # win32api.SetCursorPos((int(thumbtipX), int(thumbtipY)))
+                    else:
+                        distanceColor = (255, 255, 255)
+                        # print('mc: ' + str(mouseCounter))
+                        if mouseCounter > 0:
+                            mouseCounter -= 1
+                            # print('mc: ' + str(mouseCounter))
+                    image = cv2.putText(image, indexstring[:], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+                                        cv2.LINE_AA)
+                    image = cv2.putText(image, thumbstring[:], (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+                                        cv2.LINE_AA)
+                    image = cv2.putText(image, distancestring[:], (50, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, distanceColor, 2,
+                                        cv2.LINE_AA)
+                    image = cv2.putText(image, "Test", (indextipX, indextipY), cv2.FONT_HERSHEY_SIMPLEX, 1, distanceColor,2,cv2.LINE_AA)
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
