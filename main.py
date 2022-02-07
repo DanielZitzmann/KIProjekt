@@ -14,8 +14,8 @@ courserLastPostX = 0
 courserLastPostY = 0
 thumbLastPosX = 0
 thumbLastPosY = 0
-scale = 0.5
-useStickmode = 0
+scale = 0.5 # Stelle Mausempfindlichkeit ein
+useStickmode = 0 # Benutze Gleit Modus
 mouse = Controller()
 
 # For webcam input:
@@ -51,27 +51,59 @@ with mp_hands.Hands(
                     indextipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x)
                     indextipY = height - (height * hand_landmarks.landmark[
                         mp_hands.HandLandmark.INDEX_FINGER_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
-                    # Hole Daumenkuppe Koordinaten und reche diese in Pixel um
+
+                    # Hole Mittelfingerkuppe Koordinaten und rechne diese in Pixel um
+                    mftipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x)
+                    mftipY = height - (height * hand_landmarks.landmark[
+                        mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
+
+                    # Hole Ringfingerkuppe Koordinaten und rechne diese in Pixel um
+                    rftipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].x)
+                    rftipY = height - (height * hand_landmarks.landmark[
+                        mp_hands.HandLandmark.RING_FINGER_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
+
+                    # Hole Daumenkuppe Koordinaten und rechne diese in Pixel um
                     thumbtipX = (width * hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x)
                     thumbtipY = height - (height * hand_landmarks.landmark[
                         mp_hands.HandLandmark.THUMB_TIP].y)  # Spiegle Y von oben zu unten auf unten nach oben
-                    # Berechne Abstand zwischen Thumb und Index in Pixel
-                    distanceX = abs(indextipX - thumbtipX)
-                    distanceY = abs(indextipY - thumbtipY)
 
-                    thumbstring = 'Thumb: ' + str(thumbtipX)[:3] + " : " + str(thumbtipY)[:4]
-                    indexstring = 'index: ' + str(indextipX)[:3] + " : " + str(indextipY)[:4]  # Setze Ausgabe zusammen
-                    distancestring = 'Distance: ' + str(distanceX)[:3] + " : " + str(distanceY)[:4] + " MC: " + str(
+                    # Berechne Abstände
+                    # Abstand Mittelfinger Daumen
+                    distanceThumbMiddleX = abs(mftipX - thumbtipX)
+                    distanceThumbMiddleY = abs(mftipY - thumbtipY)
+                    # Abstand Zeigefinger Daumen
+                    distanceThumbIndexX = abs(indextipX - thumbtipX)
+                    distanceThumbIndexY = abs(indextipY - thumbtipY)
+                    # Abstand Ringfinger Daumen
+                    distanceThumbRingX = abs(rftipX - thumbtipX)
+                    distanceThumbRingY = abs(rftipY - thumbtipY)
+
+
+                    thumbstring = 'Thumb: ' + str(thumbtipX)[:3] + " : " + str(thumbtipY)[:4]  # Setze DevAusgabe zusammen
+                    indexstring = 'index: ' + str(indextipX)[:3] + " : " + str(indextipY)[:4]  # Setze DevAusgabe zusammen
+                    distancestring = 'Distance: ' + str(distanceThumbMiddleX)[:3] + " : " + str(distanceThumbMiddleY)[:4] + " MC: " + str(
                         mouseCounter)
-                    cv2.flip(image, 1)
-                    if distanceX <= 20 and distanceY <= 20:
+
+                    cv2.flip(image, 1) # Entspiegel Bild
+
+                    if distanceThumbMiddleX <= 20 and distanceThumbMiddleY <= 20: # Erkenne Ob Daumen und MF berühren
                         distanceColor = (0, 0, 255)
                         # print('mc: ' + str(mouseCounter))
-                        if mouseCounter < 15:
+                        if mouseCounter < 15:  # Warte Mit Mausbewegung auf mouseCounter um ungewollte Bewegung zu verhindern
                             mouseCounter += 1
-                            thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY
+                            thumbLastPosX, thumbLastPosY = thumbtipX, thumbtipY # Speicher Letzte Pos des Daumen
                         else:
-                            nx, ny = mouse.position
+                            if distanceThumbIndexX <= 20 and distanceThumbIndexY <= 20: # Erkenne Ob Daumen und ZF berühren
+                                mouse.press(Button.left)
+                                mouse.release(Button.left)
+
+                            if distanceThumbRingX <= 20 and distanceThumbRingY <= 20: # Erkenne Ob Daumen und RF berühren
+                                mouse.press(Button.right)
+                                mouse.release(Button.right)
+
+
+                            nx, ny = mouse.position #Speichere Letzte Maus Pos
+                            #Setze Neue absolute Maus Pos abhängig von Daumenbewegung und letzter Maus Pos
                             mouse.position =(
                                 ((nx - (int((thumbtipX - thumbLastPosX)/scale)) ), (ny - ((int((thumbtipY - thumbLastPosY)/scale))))))
                             courserLastPostX, courserLastPostY = nx, ny
@@ -86,13 +118,14 @@ with mp_hands.Hands(
                         if mouseCounter > 0:
                             mouseCounter -= 1
                             # print('mc: ' + str(mouseCounter))
+
+                    # Füge Kamera Dev Ausgaben hinzu
                     image = cv2.putText(image, indexstring[:], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
                                         cv2.LINE_AA)
                     image = cv2.putText(image, thumbstring[:], (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
                                         cv2.LINE_AA)
                     image = cv2.putText(image, distancestring[:], (50, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, distanceColor, 2,
                                         cv2.LINE_AA)
-                    image = cv2.putText(image, "Test", (indextipX, indextipY), cv2.FONT_HERSHEY_SIMPLEX, 1, distanceColor,2,cv2.LINE_AA)
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
